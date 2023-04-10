@@ -25,7 +25,7 @@ from vit_pytorch.efficient import ViT
 
 dim=128
 batch_size = 64
-epochs = 1000 
+epochs = 2000 
 lr = 0.0003
 gamma = 1/dim ** 0.5
 seed = 42
@@ -52,7 +52,7 @@ test_dir = '/data/sunhaoyu/Lab/Transformer/alz_data/test'
 train_list = glob.glob(os.path.join(train_dir,'*.jpg'))
 test_list = glob.glob(os.path.join(test_dir, '*.jpg'))
 
-labels = [path.split('/')[-1].split('.')[0][0:3] for path in train_list]
+labels = [path.split('/')[-1].split('.')[0][0:7] for path in train_list]
 #labels = [path.split('/')[-1].split('.')[0] for path in train_list]
 
 
@@ -103,10 +103,10 @@ class AlzDataset(Dataset):
         img = img.resize((224,224))
         img_transformed = self.transform(img)
         #label = img_path.split("/")[-1].split(".")[0]
-        label = img_path.split("/")[-1].split(".")[0][0:3]
+        label = img_path.split("/")[-1].split(".")[0][0:7]
         #label = 1 if label == "dog" else 0
-        label = 0 if label == "Non" else 1
-        '''
+        #label = 0 if label == "Non" else 1
+        
         if label == "VeryMil":
             label = 3
         if label == "MildDem":
@@ -115,7 +115,7 @@ class AlzDataset(Dataset):
             label = 1
         if label == "NonDemn":
             label = 0
-        '''
+        
 
         return img_transformed, label
     
@@ -133,13 +133,13 @@ efficient_transformer = Linformer(
     depth=12,
     heads=8,
     k=128
-)
+).to(device)
 
 model = ViT(
     dim=dim,
     image_size=224,
     patch_size=32,
-    num_classes=2,
+    num_classes=4,
     transformer=efficient_transformer,
     channels=1,
 ).to(device)
@@ -154,9 +154,9 @@ train_loss_history = []
 val_loss_history = []
 train_acc_history = []
 val_acc_history = []
-
+training_history = []
 best_val_accuracy = 0.0  # initialize the best validation accuracy
-best_model_path = "/data/sunhaoyu/Lab/Transformer/linformer_model/best_model-1.pt"
+best_model_path = "/data/sunhaoyu/Lab/Transformer/linformer_model/best_model-2-4-5000.pt"
 
 for epoch in range(epochs):
     epoch_loss = 0
@@ -197,15 +197,27 @@ for epoch in range(epochs):
             torch.save(model.state_dict(), best_model_path)
             
     train_loss_history.append(f"{epoch_loss:.4f}")
+    
     train_acc_history.append(f"{epoch_accuracy:.4f}")
     val_loss_history.append(f"{epoch_val_loss:.4f}")
     val_acc_history.append(f"{epoch_val_accuracy:.4f}")
+    training_history.append(f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f}\n")
+    with open('training_history.txt', 'w') as f:
+        for item in training_history:
+            
+            f.write("%s\n" % item)
     print(
         f"Epoch : {epoch+1} - loss : {epoch_loss:.4f} - acc: {epoch_accuracy:.4f} - val_loss : {epoch_val_loss:.4f} - val_acc: {epoch_val_accuracy:.4f}\n"
     )
+    
 
+train_loss_history = list(map(float, train_loss_history))
+train_acc_history = list(map(float, train_acc_history))
+val_loss_history = list(map(float, val_loss_history))
+val_acc_history = list(map(float, val_acc_history))
 
 print(train_loss_history)
 print(train_acc_history)
 print(val_loss_history)
 print(val_acc_history)
+print(f"max_val_acc : {best_val_accuracy}")
