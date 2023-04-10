@@ -1,6 +1,6 @@
 # deeplearning/CS584 Lab Illinois Institute Tech
 # deeplearning ViT & Linformer mixed model
-**1, ** You must download all the folder to your local env, the folder include linformer model, the main code of mixed model and dataset.           
+1,  You must download all the folder to your local env, the folder include linformer model, the main code of mixed model and dataset.           
 
 2,  You may do not need to modify the structre of the alz_data folder. You must modify the path in vit.py after you modified the structre.         
 
